@@ -136,32 +136,20 @@ Template.hangout.events({
     });
   },
   'click #end-hangout-button': function(){
-    const topic = $('#hangout-topic').text().trim().split('\n')[0]
-    const description = $('#hangout-description').text().trim()
-    // Capturing the date in an array so that I can format it later
-    const start_parts = $('.status').text().trim().split('\n')[6].trim().split('|')[0].split('-')[0].trim().split(" ")
-    const end = new Date(Date.now())
-    const type = $('.status').text().trim().split(' ')[0]
-
-    // date: Weekday Month Day Year Time TimeZone
-    var start = `${start_parts[0]} ${start_parts[1].substring(0,3)} ${start_parts[2].substring(0, start_parts[2].length - 2)} ${start_parts[3].substring(0, start_parts[3].length - 1)} ${start_parts[4]} ${start_parts[5]} ${start_parts[6]}`
-
     const data = {
-       topic: topic,
-       slug: topic.replace(/\s+/g, '-').toLowerCase(),
-       description: description,
-       start: new Date(start),
-       end: new Date(end),
-       type: type,
-       hangoutId:Session.get("hangoutId"),
-     };
-     // Used for debugging:
-     //alert(`${topic}-${description}-${start}-${end}-${type}`);
+      hangoutId: this._id,
+      slug: this.slug,
+      topic: this.topic,
+      host: this.host,
+      description: this.description,
+      description_in_quill_delta: this.description_in_quill_delta,
+      start: this.start,
+      end: new Date(),
+      type: this.type
+    }
 
      Meteor.call('editHangout', data, function(err, result) {
-        alert(err)
-        alert(result)
-        console.log(result);
+        //console.log(result);
         if (result) {
           sweetAlert({
             title: TAPi18n.__("hangout_edited_title"),

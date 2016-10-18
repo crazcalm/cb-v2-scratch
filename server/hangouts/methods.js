@@ -103,18 +103,6 @@ Meteor.methods({
 
   },
   editHangout: function(data) {
-    check(data, Match.ObjectIncluding({
-      topic: String,
-      slug: String,
-      description: String,
-      description_in_quill_delta: Match.ObjectIncluding({
-        ops: Match.Any
-      }),
-      start: Match.OneOf(String, Date),
-      end: Match.OneOf(String, Date),
-      type: String
-    }));
-
     check(data.hangoutId, String);
 
     const loggedInUser = Meteor.user();
@@ -294,5 +282,46 @@ Meteor.methods({
                            {multi: true});
 
 
+  }
+});
+
+Meteor.methods({
+  endHangout:function(hangoutId){
+    check(data, {hangoutId, String});
+
+    const loggedInUser = Meteor.user();
+    if (!this.userId) {
+      throw new Meteor.Error('Hangout.methos.endHangout.not-logged-in', "Must be logged in to end hangout.");
+          }
+
+    if(data.host.id === loggedInUser._id){
+      Hangouts.update({_id: data.hangoutId},
+                      {$set: {end: new Date(),
+                              url: ""}});
+
+      return true;
+
+    } else if(Roles.userIsInRole(loggedInUser._id, ['admin', 'moderator'])){
+      Hangouts.update({_id: data.hangoutId},
+                      {$set: {end: new Date(),
+                              url: ""}});
+
+      const notification = {
+        actorId: loggedInUser._id,
+        subjectUsername: loggedInUser.username,
+        subjectId: hangout.host.id,
+        subjectUsername: hangout.host.name,
+        hangoutId: hangout._id,
+        createdAt: new Date(),
+        read: [loggedInUser._id],
+        action: "ended",
+        icon: "fa-stop",
+        type: "hangout end"
+      }
+
+      Notifications.insert(notification);
+
+      return true;
+     }
   }
 });
